@@ -32,25 +32,31 @@ module Datadog
           return default_connection_config if connection.nil? && connection_id.nil?
 
           conn = if !connection.nil?
+                   # Since Rails 6.0, the connection object
+                   # is available
                    connection
-                 # Rails 3.0 - 3.2
-                 elsif Gem.loaded_specs['activerecord'].version < Gem::Version.new('4.0')
-                   ::ActiveRecord::Base
-                     .connection_handler
-                     .connection_pools
-                     .values
-                     .flat_map(&:connections)
-                     .find { |c| c.object_id == connection_id }
-                 # Rails 4.2+
                  else
-                   ::ActiveRecord::Base
-                     .connection_handler
-                     .connection_pool_list
-                     .flat_map(&:connections)
-                     .find { |c| c.object_id == connection_id }
+                   # For Rails < 6.0, only the connection_id
+                   # is available. We have to find the connection
+                   # object from it.
+                   begin
+                     # `connection_id` is the `#object_id` of the
+                     # connection. We can perform an ObjectSpace
+                     # lookup to find it.
+                     #
+                     # This works not only for ActiveRecord, but for
+                     # extensions that might have their own connection
+                     # pool (e.g. https://rubygems.org/gems/makara)
+                     ObjectSpace._id2ref(connection_id)
+                   rescue => e
+                     Datadog.logger.debug(
+                       "connection_id #{connection_id} does not represent a valid object. " \
+                        "Cause: #{e.message} Source: #{e.backtrace.first}"
+                     )
+                   end
                  end
 
-          if conn.instance_variable_defined?(:@config)
+          if conn && conn.instance_variable_defined?(:@config)
             conn.instance_variable_get(:@config)
           else
             EMPTY_CONFIG
