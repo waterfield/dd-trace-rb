@@ -12,7 +12,7 @@ module Datadog
           end
 
           def resolve(key)
-            normalize(connection_resolver.resolve(key).symbolize_keys)
+            normalize(key, connection_resolver.resolve(key).symbolize_keys)
           rescue => e
             Datadog.logger.error(
               "Failed to resolve ActiveRecord configuration key #{key.inspect}. " \
@@ -90,8 +90,8 @@ module Datadog
             end
           end
 
-          def normalize(hash)
-            key = {
+          def normalize(key, hash)
+            normalized = {
               adapter:  hash[:adapter],
               host:     hash[:host],
               port:     hash[:port],
@@ -100,14 +100,20 @@ module Datadog
               role:     hash[:role]
             }
 
-            inject_makara_role!(hash, key)
+            inject_makara_role!(key, hash, normalized)
 
-            HashKey.new(key)
+            HashKey.new(normalized)
           end
 
-          def inject_makara_role!(hash, key)
+          def inject_makara_role!(key, hash, normalized)
+            # When configuring ActiveRecord with Symbols,
+            # ActiveRecord injects a `name` key into it's
+            # resulting hash, causing it to be mistaken
+            # but a makara role.
+            return if key.is_a?(Symbol)
+
             if hash[:name].is_a?(String)
-              key[:role] = hash[:name].split('/')[0].to_s
+              normalized[:role] = hash[:name].split('/')[0].to_s
             end
           end
         end
