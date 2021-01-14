@@ -213,7 +213,7 @@ RSpec.describe Datadog::Contrib::ActiveRecord::Configuration::Resolver do
             port: 123,
             database: 'database',
             username: 'username',
-            role: nil,
+            role: nil
           }
         end
 
