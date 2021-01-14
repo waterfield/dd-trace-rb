@@ -87,7 +87,7 @@ elsif Gem::Version.new('2.0.0') <= Gem::Version.new(RUBY_VERSION) \
       gem 'excon'
       gem 'hiredis'
       gem 'http'
-      gem 'makara'
+      gem 'makara', '< 0.5.0'
       gem 'mongo', '< 2.5'
       gem 'mysql2', '0.3.21', platform: :ruby
       gem 'pg', '< 1.0', platform: :ruby
@@ -212,7 +212,7 @@ elsif Gem::Version.new('2.1.0') <= Gem::Version.new(RUBY_VERSION) \
       gem 'excon'
       gem 'hiredis'
       gem 'http'
-      gem 'makara'
+      gem 'makara', '< 0.5.0'
       gem 'mongo', '< 2.5'
       gem 'mysql2', '0.3.21', platform: :ruby
       gem 'pg', '< 1.0', platform: :ruby
@@ -394,7 +394,7 @@ elsif Gem::Version.new('2.2.0') <= Gem::Version.new(RUBY_VERSION) \
       gem 'grpc', '~> 1.21.0' # Last version to support Ruby < 2.3
       gem 'hiredis'
       gem 'http'
-      gem 'makara'
+      gem 'makara', '< 0.5.0'
       gem 'mongo', '>= 2.8.0'
       gem 'mysql2', '< 0.5', platform: :ruby
       gem 'qless'
