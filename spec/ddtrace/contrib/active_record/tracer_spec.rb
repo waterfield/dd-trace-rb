@@ -5,9 +5,6 @@ require 'ddtrace'
 
 require_relative 'app'
 
-require 'makara'
-require 'active_record/connection_adapters/makara_mysql2_adapter'
-
 RSpec.describe 'ActiveRecord instrumentation' do
   let(:configuration_options) { {} }
 
@@ -69,6 +66,13 @@ RSpec.describe 'ActiveRecord instrumentation' do
     end
 
     xcontext 'with maraka' do
+      before do
+        require 'makara'
+
+        require 'active_record/connection_adapters/makara_mysql2_adapter'
+        require 'active_record/connection_adapters/makara_jdbcmysql_adapter'
+      end
+
       let(:config) do
         YAML.safe_load(<<-YAML)['test']
           test:
