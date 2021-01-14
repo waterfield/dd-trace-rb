@@ -1223,6 +1223,7 @@ elsif Gem::Version.new('2.7.0') <= Gem::Version.new(RUBY_VERSION) \
       gem 'grpc'
       gem 'hiredis'
       gem 'http'
+      gem 'makara'
       gem 'mongo', '>= 2.8.0'
       gem 'mysql2', '< 1', platform: :ruby
       gem 'pg', platform: :ruby
