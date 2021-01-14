@@ -49,6 +49,10 @@ module Datadog
                      # pool (e.g. https://rubygems.org/gems/makara)
                      ObjectSpace._id2ref(connection_id)
                    rescue => e
+                     # Because `connection_id` references a live connection
+                     # present in the current stack, it is very unlikely that
+                     # `_id2ref` will fail, but we add this safeguard just
+                     # in case.
                      Datadog.logger.debug(
                        "connection_id #{connection_id} does not represent a valid object. " \
                         "Cause: #{e.message} Source: #{e.backtrace.first}"

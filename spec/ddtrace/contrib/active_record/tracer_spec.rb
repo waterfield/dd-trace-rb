@@ -5,6 +5,9 @@ require 'ddtrace'
 
 require_relative 'app'
 
+require 'makara'
+require 'active_record/connection_adapters/makara_mysql2_adapter'
+
 RSpec.describe 'ActiveRecord instrumentation' do
   let(:configuration_options) { {} }
 
@@ -62,6 +65,48 @@ RSpec.describe 'ActiveRecord instrumentation' do
         let(:configuration_options) { super().merge(service_name: service_name) }
 
         it { expect(span.service).to eq(service_name) }
+      end
+    end
+
+    xcontext 'with maraka' do
+      let(:config) do
+        YAML.safe_load(<<-YAML)['test']
+          test:
+            adapter: 'mysql2_makara'
+            database: '#{ENV.fetch('TEST_MYSQL_DB', 'mysql')}'
+            username: 'root'
+            host: '#{ENV.fetch('TEST_MYSQL_HOST', '127.0.0.1')}'
+            password: '#{ENV.fetch('TEST_MYSQL_ROOT_PASSWORD', 'root')}'
+            port: '#{ENV.fetch('TEST_MYSQL_PORT', '3306')}'
+
+            timeout: 5000
+
+            makara:
+              blacklist_duration: 2
+              master_ttl: 5
+              connections:
+                - role: master
+                - role: slave
+                - role: slave
+        YAML
+      end
+
+      before do
+        # @primary_config = ::ActiveRecord::Base.configurations[:primary]
+
+        ::ActiveRecord::Base.establish_connection(config)
+
+        ::ActiveRecord::Base.logger = Logger.new(nil)
+
+        Article.where('id > 0').first
+      end
+
+      after do
+        ::ActiveRecord::Base.establish_connection(@primary_config)
+      end
+
+      it do
+        # ActiveRecord::Base.establish_connection(adapter: 'sqlite3', database: ':memory:')
       end
     end
   end
