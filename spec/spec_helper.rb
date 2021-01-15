@@ -8,10 +8,10 @@ require 'climate_control'
 # Skip for benchmarks, as coverage collection slows them down.
 unless RSpec.configuration.files_to_run.all? { |path| path.include?('/benchmark/') }
   # +SimpleCov.start+ must be invoked before any application code is loaded
-  require 'simplecov'
-  SimpleCov.start do
-    formatter SimpleCov::Formatter::SimpleFormatter
-  end
+  # require 'simplecov'
+  # SimpleCov.start do
+  #   formatter SimpleCov::Formatter::SimpleFormatter
+  # end
 end
 
 require 'ddtrace/encoding'

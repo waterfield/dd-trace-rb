@@ -12,7 +12,7 @@ module Datadog
       # Configurable instance behavior for integrations
       module InstanceMethods
         def default_configuration
-          Configuration::Settings.new
+          @default_configuration ||= Configuration::Settings.new
         end
 
         def reset_configuration!
@@ -23,7 +23,10 @@ module Datadog
         # Get matching configuration for key.
         # If no match, returns default configuration.
         def configuration(key = :default)
-          configurations[configuration_key(key)]
+          return default_configuration if key == :default
+
+          resolver.get(key) || default_configuration
+          # configurations[configuration_key(key)]
         end
 
         # If the key has matching configuration explicitly defined for it,
@@ -36,9 +39,10 @@ module Datadog
         end
 
         def configurations
-          @configurations ||= {
-            default: default_configuration
-          }
+          resolver.configurations
+          # @configurations ||= {
+          #   :default => default_configuration
+          # }
         end
 
         # Create or update configuration with provided settings.
@@ -46,7 +50,7 @@ module Datadog
           key ||= :default
 
           # Get or add the configuration
-          config = configuration_for?(key) ? configuration(key) : add_configuration(key)
+          config = resolver.get(key) || resolver.add(key, default_configuration)
 
           # Apply the settings
           config.configure(options, &block)
@@ -76,3 +80,4 @@ module Datadog
     end
   end
 end
+
