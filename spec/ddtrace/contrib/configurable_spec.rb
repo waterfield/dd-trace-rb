@@ -2,7 +2,7 @@ require 'ddtrace/contrib/support/spec_helper'
 
 require 'ddtrace'
 
-RSpec.describe Datadog::Contrib::Configurable do
+RSpec.xdescribe Datadog::Contrib::Configurable do
   describe 'implemented' do
     subject(:configurable_class) do
       Class.new.tap do |klass|

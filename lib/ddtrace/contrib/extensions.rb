@@ -48,9 +48,15 @@ module Datadog
             end
           end
 
-          def [](integration_name, configuration_name = :default)
+          # Resolves a matching configuration for the provided integration,
+          # with the respective key.
+          # The matching performed is integration-specific.
+          #
+          # @param [Symbol] integration_name the integration name
+          # @param [Object] key the integration-specific lookup key
+          def [](integration_name, key = :default)
             integration = fetch_integration(integration_name)
-            integration.configuration(configuration_name) unless integration.nil?
+            integration.resolve(key) unless integration.nil?
           end
 
           def instrument(integration_name, options = {}, &block)

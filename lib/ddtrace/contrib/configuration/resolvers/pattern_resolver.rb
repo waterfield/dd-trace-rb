@@ -8,30 +8,26 @@ module Datadog
         # Matches strings against Regexps.
         class PatternResolver < Datadog::Contrib::Configuration::Resolver
           def resolve(name)
-            return if patterns.empty?
+            return if configurations.empty?
 
             # Try to find a matching pattern
-            matching_pattern = patterns.find do |pattern|
-              if pattern.is_a?(Proc)
-                (pattern === name)
-              else
-                (pattern === name.to_s) ||
-                  (pattern == name) # Only required during configuration time.
-              end
+            _, config = configurations.find do |pattern, _|
+              pattern === if pattern.is_a?(Proc)
+                            name
+                          else
+                            name.to_s
+                          end
             end
 
             # Return match or default
-            matching_pattern
+            config
           end
 
-          def add(pattern)
-            patterns << (pattern.is_a?(Regexp) || pattern.is_a?(Proc) ? pattern : pattern.to_s)
-          end
+          def add(pattern, value)
+            # TODO: remove? (pattern == name) # Only required during configuration time.
+            pattern = pattern.to_s unless pattern.is_a?(Regexp) || pattern.is_a?(Proc)
 
-          private
-
-          def patterns
-            @patterns ||= Set.new
+            super(pattern, value)
           end
         end
       end
