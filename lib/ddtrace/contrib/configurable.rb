@@ -3,7 +3,11 @@ require 'ddtrace/contrib/configuration/settings'
 
 module Datadog
   module Contrib
-    # Defines configurable behavior for integrations
+    # Defines configurable behavior for integrations.
+    #
+    # This module is responsible for coordination between
+    # the configuration resolver and default configuration
+    # fallback.
     module Configurable
       def self.included(base)
         base.send(:include, InstanceMethods)
@@ -11,7 +15,7 @@ module Datadog
 
       # Configurable instance behavior for integrations
       module InstanceMethods
-        # Provides a new configuration instance for the integration.
+        # Provides a new configuration instance for this integration.
         # This method will likely need to be overridden in each integration,
         # as their settings and defaults likely diverge from the default.
         #
@@ -28,43 +32,31 @@ module Datadog
           Configuration::Settings.new
         end
 
+        # Resets all configuration options
         def reset_configuration!
-          @configurations = nil # TODO: do we need this?
-
           @resolver = nil
           @default_configuration = nil
         end
 
-        # Get matching configuration for key.
-        # If no match, returns default configuration.
+        # Get matching configuration by matcher.
+        # If no match, returns the default configuration instance.
         def configuration(matcher = :default)
           return default_configuration_instance if matcher == :default
 
           resolver.get(matcher) || default_configuration_instance
-          # configurations[configuration_key(key)]
         end
 
-        # Get matching configuration for key.
-        # If no match, returns default configuration.
-        def resolve(key)
-          return default_configuration_instance if key == :default
+        # Resolves the matching configuration for integration-specific value.
+        # If no match, returns the default configuration instance.
+        def resolve(value)
+          return default_configuration_instance if value == :default
 
-          resolver.resolve(key) || default_configuration_instance
+          resolver.resolve(value) || default_configuration_instance
         end
 
-        # If the key has matching configuration explicitly defined for it,
-        # then return true. Otherwise return false.
-        # Note: a resolver's resolve method should not return a fallback value
-        # See: https://github.com/DataDog/dd-trace-rb/issues/1204
-        def configuration_for?(key)
-          !resolver.resolve(key).nil? unless key == :default
-        end
-
+        # Returns all registered configuration settings
         def configurations
-          resolver.configurations
-          # @configurations ||= {
-          #   :default => default_configuration_instance
-          # }
+          resolver.configurations.merge(default: default_configuration_instance)
         end
 
         # Create or update configuration with provided settings.
@@ -91,21 +83,6 @@ module Datadog
 
         def resolver
           @resolver ||= Configuration::Resolver.new
-        end
-
-        # TODO: Remove these following methods?
-        def add_configuration(matcher)
-          resolver.add(matcher)
-          config_key = resolver.resolve(matcher)
-          configurations[config_key] = default_configuration_instance
-        end
-
-        def configuration_key(key)
-          return :default if key.nil? || key == :default
-
-          key = resolver.resolve(key)
-          key = :default unless configurations.key?(key)
-          key
         end
       end
     end

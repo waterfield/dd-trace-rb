@@ -80,10 +80,9 @@ module Datadog
           # https://github.com/jruby/jruby/wiki/PerformanceTuning/cf155dd9e3c5df32e7b2de6bff41728207915ee2#dont-enable-objectspace
           #
           # This fallback code does not support the makara gem,
-          # as it's connections does not live in the default
+          # as its connections don't live in the ActiveRecord
           # connection pool.
           def self.connection_from_id(connection_id)
-            pp "connection_id: #{connection_id}"
             ::ActiveRecord::Base
               .connection_handler
               .connection_pool_list

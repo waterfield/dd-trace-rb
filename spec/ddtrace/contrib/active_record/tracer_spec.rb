@@ -53,28 +53,26 @@ RSpec.describe 'ActiveRecord instrumentation' do
     end
 
     context 'and service_name' do
+      let(:service_name) { 'test_active_record' }
+
       context 'is not set' do
         it { expect(span.service).to eq('mysql2') }
       end
 
       context 'is set' do
-        let(:service_name) { 'test_active_record' }
         let(:configuration_options) { super().merge(service_name: service_name) }
 
         it { expect(span.service).to eq(service_name) }
       end
-    end
 
-    xcontext 'with maraka' do
-      before do
-        require 'makara'
+      context 'with a custom configuration' do
+        let(:configuration_options) { super().merge(describes: describes, service_name: service_name) }
 
-        require 'active_record/connection_adapters/makara_mysql2_adapter'
-        require 'active_record/connection_adapters/makara_jdbcmysql_adapter'
-      end
+        context 'with the maraka gem' do
+          before { skip("JRuby doesn't support ObjectSpace._id2ref for connection_id lookup") if PlatformHelpers.jruby? }
 
-      let(:config) do
-        YAML.safe_load(<<-YAML)['test']
+          let(:config) do
+            YAML.safe_load(<<-YAML)['test']
           test:
             adapter: 'mysql2_makara'
             database: '#{ENV.fetch('TEST_MYSQL_DB', 'mysql')}'
@@ -83,34 +81,55 @@ RSpec.describe 'ActiveRecord instrumentation' do
             password: '#{ENV.fetch('TEST_MYSQL_ROOT_PASSWORD', 'root')}'
             port: '#{ENV.fetch('TEST_MYSQL_PORT', '3306')}'
 
-            timeout: 5000
-
             makara:
-              blacklist_duration: 2
-              master_ttl: 5
               connections:
                 - role: master
                 - role: slave
                 - role: slave
-        YAML
-      end
+            YAML
+          end
 
-      before do
-        # @primary_config = ::ActiveRecord::Base.configurations[:primary]
+          before do
+            @original_config = ActiveRecord::Base.connection_config
 
-        ::ActiveRecord::Base.establish_connection(config)
+            # Set up makara
+            require 'makara'
+            require 'active_record/connection_adapters/makara_mysql2_adapter'
+            ::ActiveRecord::Base.establish_connection(config)
+            ::ActiveRecord::Base.logger = Logger.new(nil)
+            Article.count
 
-        ::ActiveRecord::Base.logger = Logger.new(nil)
+            # Clear setup spans
+            clear_spans!
+          end
 
-        Article.where('id > 0').first
-      end
+          after { ::ActiveRecord::Base.establish_connection(@original_config) if @original_config }
 
-      after do
-        ::ActiveRecord::Base.establish_connection(@primary_config)
-      end
+          context 'and a master write operation' do
+            let(:describes) { { role: 'master' } }
 
-      it do
-        # ActiveRecord::Base.establish_connection(adapter: 'sqlite3', database: ':memory:')
+            it 'matches replica configuration' do
+              # SHOW queries are executed on master
+              ActiveRecord::Base.connection.execute('SHOW TABLES')
+
+              expect(spans).to have_at_least(1).item
+              spans.each do |span|
+                expect(span.service).to eq(service_name)
+              end
+            end
+          end
+
+          context 'and a replica read operation' do
+            let(:describes) { { role: 'slave' } }
+
+            it 'matches replica configuration' do
+              # SELECT queries are executed on replicas
+              Article.count
+
+              expect(span.service).to eq(service_name)
+            end
+          end
+        end
       end
     end
   end

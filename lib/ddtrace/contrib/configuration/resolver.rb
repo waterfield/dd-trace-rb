@@ -14,14 +14,17 @@ module Datadog
           @configurations[matcher]
         end
 
+        # Adds a new `matcher`, associating with it a `value`.
+        # This `value` is returned when `#resolve` is called
+        # with a matching value for this matcher.
         def add(matcher, value)
           @configurations[matcher] = value
         end
 
-        # Matches a key with patterns keys
-        # from the configuration hash.
-        def resolve(key)
-          @configurations[key]
+        # Matches an arbitrary value against the configured
+        # matchers previously set with `#add`.
+        def resolve(value)
+          @configurations[value]
         end
       end
     end
