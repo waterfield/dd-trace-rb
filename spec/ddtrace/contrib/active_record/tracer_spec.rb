@@ -72,7 +72,7 @@ RSpec.describe 'ActiveRecord instrumentation' do
           before { skip("JRuby doesn't support ObjectSpace._id2ref for connection_id lookup") if PlatformHelpers.jruby? }
 
           let(:config) do
-            YAML.dump(<<-YAML)['test']
+            YAML.safe_load(<<-YAML)['test']
           test:
             adapter: 'mysql2_makara'
             database: '#{ENV.fetch('TEST_MYSQL_DB', 'mysql')}'
