@@ -9,13 +9,13 @@ module Datadog
           @configurations = {}
         end
 
-        # TODO Do we need a simple get, without fetch?
-        def get(pattern)
-          @configurations[pattern]
+        # TODO: Do we need a simple get, without fetch?
+        def get(matcher)
+          @configurations[matcher]
         end
 
-        def add(pattern, value)
-          @configurations[pattern] = value
+        def add(matcher, value)
+          @configurations[matcher] = value
         end
 
         # Matches a key with patterns keys

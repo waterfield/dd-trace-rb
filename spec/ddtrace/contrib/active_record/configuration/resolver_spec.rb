@@ -7,9 +7,84 @@ RSpec.describe Datadog::Contrib::ActiveRecord::Configuration::Resolver do
   subject(:resolver) { described_class.new(configuration) }
   let(:configuration) { nil }
 
-  # Wraps hashes in the same HashKey class used by the resolver
-  def wrap_config(hash)
-    Datadog::Contrib::ActiveRecord::Configuration::Resolver::HashKey.new(hash)
+  context '#add' do
+    subject(:add) { resolver.add(matcher, config) }
+
+    let(:matcher) { double('matcher') }
+    let(:config) { double('config') }
+
+    context 'with a hash matcher' do
+      let(:matcher) do
+        {
+          adapter: 'adapter',
+          host: 'host',
+          port: 123,
+          username: nil,
+          unrelated_setting: 'foo'
+        }
+      end
+
+      it 'resolves to a normalized hash matcher' do
+        add
+
+        expect(resolver.configurations)
+          .to eq({
+                   adapter: 'adapter',
+                   host: 'host',
+                   port: 123
+                 } => config)
+      end
+    end
+
+    context 'with a symbol matcher' do
+      let(:matcher) { :test }
+
+      context 'with a valid ActiveRecord database' do
+        let(:configuration) { { 'test' => db_config } }
+
+        let(:db_config) do
+          {
+            adapter: 'adapter',
+            host: 'host',
+            port: 123
+          }
+        end
+
+        it 'resolves to a normalized hash matcher' do
+          add
+
+          expect(resolver.configurations).to include(db_config => config)
+        end
+      end
+
+      context 'without a valid ActiveRecord database' do
+        it "logs error and doesn't register matcher" do
+          expect(Datadog.logger).to receive(:error).with(/:test/)
+
+          add
+
+          expect(resolver.configurations).to be_empty
+        end
+      end
+    end
+
+    context 'with a URL matcher' do
+      let(:matcher) { 'adapter://host:123' }
+
+      let(:db_config) do
+        {
+          adapter: 'adapter',
+          host: 'host',
+          port: 123
+        }
+      end
+
+      it 'resolves to a normalized hash matcher' do
+        add
+
+        expect(resolver.configurations).to include(db_config => config)
+      end
+    end
   end
 
   context '#resolve' do
@@ -172,12 +247,8 @@ RSpec.describe Datadog::Contrib::ActiveRecord::Configuration::Resolver do
             }
           end
 
-          # it 'replaces matcher, returning the latest matcher' do
-          #   expect(resolved).to be(second_matcher)
-          # end
-
-          it_behaves_like 'a matching pattern' do
-            let(:matcher) { second_matcher }
+          it 'replaces the first with the second matcher' do
+            is_expected.to be(second_matcher)
           end
         end
 
@@ -190,70 +261,10 @@ RSpec.describe Datadog::Contrib::ActiveRecord::Configuration::Resolver do
 
           let(:second_matcher) { match_all }
 
-          it_behaves_like 'a matching pattern', 'matching the first inserted pattern' do
-            let(:matcher) { first_matcher }
+          it 'matches the latest added matcher' do
+            is_expected.to be(second_matcher)
           end
         end
-      end
-    end
-  end
-
-  context '#add' do
-    subject(:resolve) { resolver.add(key) }
-
-    let(:key) { double }
-
-    it 'returns the object provided without any changes' do
-      is_expected.to be(key)
-    end
-
-    context 'with a symbol matcher' do
-      let(:matcher) { :test }
-
-      context 'with a valid ActiveRecord database' do
-        let(:configuration) { { 'test' => db_config } }
-
-        let(:db_config) do
-          {
-            adapter: 'adapter',
-            host: 'host',
-            port: 123,
-            database: 'database',
-            username: 'username',
-            role: nil
-          }
-        end
-
-        it 'resolves to a normalized hash matcher' do
-          is_expected.to be(db_config)
-        end
-      end
-
-      context 'without a valid ActiveRecord database' do
-        it 'resolves to a normalized hash matcher' do
-          expect(Datadog.logger).to receive(:error).with(/:test/)
-
-          is_expected.to be_nil
-        end
-      end
-    end
-
-    context 'with a string URL matcher' do
-      let(:matcher) { 'adapter://host' }
-
-      let(:normalized_config) do
-        {
-          adapter: 'adapter',
-          host: 'host',
-          port: nil,
-          database: nil,
-          username: nil,
-          role: nil
-        }
-      end
-
-      it 'resolves to a normalized hash matcher' do
-        is_expected.to eq(wrap_config(normalized_config))
       end
     end
   end
