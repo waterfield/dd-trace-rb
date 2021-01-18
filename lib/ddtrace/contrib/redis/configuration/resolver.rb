@@ -8,10 +8,14 @@ module Datadog
 
         # Converts Symbols, Strings, and Hashes to a normalized connection settings Hash.
         class Resolver < Contrib::Configuration::Resolver
-          def resolve(key_or_hash)
-            return :default if key_or_hash == :default
+          def add(key_or_hash, value)
+            resolved = normalize(connection_resolver.resolve(key_or_hash))
+            super(resolved, value)
+          end
 
-            normalize(connection_resolver.resolve(key_or_hash))
+          def resolve(key_or_hash)
+            resolved = normalize(connection_resolver.resolve(key_or_hash))
+            super(resolved)
           end
 
           def normalize(hash)

@@ -4,6 +4,8 @@ require 'ddtrace'
 RSpec.describe Datadog::Contrib::Configuration::Resolvers::PatternResolver do
   subject(:resolver) { described_class.new }
 
+  let(:config) { double('config') }
+
   describe '#resolve' do
     subject(:resolve) { resolver.resolve(name) }
 
@@ -11,44 +13,44 @@ RSpec.describe Datadog::Contrib::Configuration::Resolvers::PatternResolver do
       let(:name) { 'my-name' }
       let(:pattern) { /name/ }
 
-      before { resolver.add(pattern) }
-      it { is_expected.to eq(pattern) }
+      before { resolver.add(pattern, config) }
+      it { is_expected.to eq(config) }
 
       context 'then given a name that isn\'t a String but is case equal' do
         let(:name) { URI('http://localhost') }
         let(:pattern) { /#{Regexp.escape('http://localhost')}/ }
 
         it 'coerces the name to a String' do
-          is_expected.to eq(pattern)
+          is_expected.to eq(config)
         end
       end
     end
 
     context 'when non-matching Regexp has been added' do
       let(:name) { 'my-name' }
-      before { resolver.add(/not_found/) }
+      before { resolver.add(/not_found/, config) }
       it { is_expected.to be nil }
     end
 
     context 'when matching Proc has been added' do
       let(:name) { 'my-name' }
       let(:pattern_proc) { proc { |n| n == name } }
-      before { resolver.add(pattern_proc) }
-      it { is_expected.to eq(pattern_proc) }
+      before { resolver.add(pattern_proc, config) }
+      it { is_expected.to eq(config) }
 
       context 'then given a name that isn\'t a String but is case equal' do
         let(:name) { URI('http://localhost') }
         let(:pattern_proc) { proc { |uri| uri.is_a?(URI) } }
 
         it 'does not coerce the name' do
-          is_expected.to eq(pattern_proc)
+          is_expected.to eq(config)
         end
       end
     end
 
     context 'when non-matching Proc has been added' do
       let(:name) { 'my-name' }
-      before { resolver.add(proc { |n| n == 'not_found' }) }
+      before { resolver.add(proc { |n| n == 'not_found' }, config) }
       it { is_expected.to be nil }
     end
 
@@ -56,28 +58,28 @@ RSpec.describe Datadog::Contrib::Configuration::Resolvers::PatternResolver do
       let(:name) { 'my-name' }
       let(:pattern) { name }
 
-      before { resolver.add(pattern) }
-      it { is_expected.to eq(pattern) }
+      before { resolver.add(pattern, config) }
+      it { is_expected.to eq(config) }
 
       context 'then given a name that isn\'t a String but is case equal' do
         let(:name) { URI('http://localhost') }
         let(:pattern) { name.to_s }
 
         it 'coerces the name to a String' do
-          is_expected.to eq(pattern)
+          is_expected.to eq(config)
         end
       end
     end
 
     context 'when a non-matching String has been added' do
       let(:name) { 'name' }
-      before { resolver.add('my-name') }
+      before { resolver.add('my-name', config) }
       it { is_expected.to be nil }
     end
   end
 
   describe '#add' do
-    subject(:add) { resolver.add(pattern) }
+    subject(:add) { resolver.add(pattern, config) }
 
     context 'when given a Regexp' do
       let(:pattern) { /name/ }
@@ -85,7 +87,7 @@ RSpec.describe Datadog::Contrib::Configuration::Resolvers::PatternResolver do
       it 'allows any string matching the pattern to resolve' do
         expect { add }.to change { resolver.resolve('my-name') }
           .from(nil)
-          .to(pattern)
+          .to(config)
       end
     end
 
@@ -95,7 +97,7 @@ RSpec.describe Datadog::Contrib::Configuration::Resolvers::PatternResolver do
       it 'allows any string matching the pattern to resolve' do
         expect { add }.to change { resolver.resolve('my-name') }
           .from(nil)
-          .to(pattern)
+          .to(config)
       end
     end
 
@@ -105,7 +107,7 @@ RSpec.describe Datadog::Contrib::Configuration::Resolvers::PatternResolver do
       it 'allows identical strings to resolve' do
         expect { add }.to change { resolver.resolve(pattern) }
           .from(nil)
-          .to(pattern)
+          .to(config)
       end
     end
 
@@ -116,7 +118,7 @@ RSpec.describe Datadog::Contrib::Configuration::Resolvers::PatternResolver do
         expect(pattern).to respond_to(:to_s)
         expect { add }.to change { resolver.resolve('http://localhost') }
           .from(nil)
-          .to('http://localhost')
+          .to(config)
       end
     end
   end

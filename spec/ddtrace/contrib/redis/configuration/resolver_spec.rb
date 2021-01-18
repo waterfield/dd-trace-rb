@@ -3,7 +3,7 @@ require 'ddtrace/contrib/support/spec_helper'
 require 'redis'
 require 'ddtrace'
 
-RSpec.describe 'Redis configuration resolver' do
+RSpec.xdescribe 'Redis configuration resolver' do
   let(:resolver) { Datadog::Contrib::Redis::Configuration::Resolver.new }
 
   context 'when :default magic keyword' do
