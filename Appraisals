@@ -41,6 +41,7 @@ elsif Gem::Version.new('2.0.0') <= Gem::Version.new(RUBY_VERSION) \
       gem 'rack-cache', '1.7.1'
       gem 'sqlite3', '~> 1.3.5'
       gem 'lograge', '< 0.4'
+      gem 'makara', '< 0.5.0'
     end
 
     appraise 'rails32-postgres' do
@@ -139,6 +140,7 @@ elsif Gem::Version.new('2.1.0') <= Gem::Version.new(RUBY_VERSION) \
       gem 'rack-cache', '1.7.1'
       gem 'sqlite3', '~> 1.3.5'
       gem 'lograge', '< 0.4'
+      gem 'makara', '< 0.5.0'
     end
 
     appraise 'rails32-postgres' do
