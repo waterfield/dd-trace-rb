@@ -69,7 +69,15 @@ RSpec.describe 'ActiveRecord instrumentation' do
         let(:configuration_options) { super().merge(describes: describes, service_name: service_name) }
 
         context 'with the maraka gem' do
-          before { skip("JRuby doesn't support ObjectSpace._id2ref for connection_id lookup") if PlatformHelpers.jruby? }
+          before do
+            skip("JRuby doesn't support ObjectSpace._id2ref for connection_id lookup") if PlatformHelpers.jruby?
+
+            # TODO: Remove: pending release of https://github.com/instacart/makara/pull/283
+            require 'makara'
+            if Gem::Version.new(::Makara::VERSION.to_s) <= Gem::Version.new('0.5.0')
+              skip("makara <= 0.5 does not support Ruby 3.0")
+            end
+          end
 
           let(:config) do
             YAML.safe_load(<<-YAML)['test']
