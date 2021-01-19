@@ -75,7 +75,7 @@ RSpec.describe 'ActiveRecord instrumentation' do
             # TODO: Remove: pending release of https://github.com/instacart/makara/pull/283
             require 'makara'
             if Gem::Version.new(::Makara::VERSION.to_s) <= Gem::Version.new('0.5.0')
-              skip("makara <= 0.5 does not support Ruby 3.0")
+              skip('makara <= 0.5 does not support Ruby 3.0')
             end
           end
 
