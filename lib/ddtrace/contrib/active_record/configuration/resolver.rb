@@ -74,11 +74,12 @@ module Datadog
 
           def parse_matcher(matcher)
             resolved_pattern = connection_resolver.resolve(matcher).symbolize_keys
-
             normalized = normalize(resolved_pattern)
 
             # Remove empty fields to allow for partial matching
             normalized.reject! { |_, v| v.nil? }
+
+            normalized
           rescue => e
             Datadog.logger.error(
               "Failed to resolve ActiveRecord configuration key #{matcher.inspect}. " \
