@@ -37,7 +37,13 @@ require 'support/test_helpers'
 require 'support/tracer_helpers'
 
 if RUBY_VERSION < '2.1.0'
-  require 'safe_yaml' # Allow use of YAML.safe_load on all supported rubies
+  # Allow use of YAML.safe_load on all supported rubies
+  require 'safe_yaml'
+
+  # Allow gems to use continue using YAML.load without `safe_yaml`
+  # raising the error "Called 'load' without the :safe option".
+  # This should be removed when `safe_yaml` is removed.
+  SafeYAML::OPTIONS[:default_mode] = :unsafe
 end
 
 begin
