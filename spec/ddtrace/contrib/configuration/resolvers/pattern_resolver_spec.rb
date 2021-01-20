@@ -11,14 +11,14 @@ RSpec.describe Datadog::Contrib::Configuration::Resolvers::PatternResolver do
 
     context 'when matching Regexp has been added' do
       let(:name) { 'my-name' }
-      let(:pattern) { /name/ }
+      let(:matcher) { /name/ }
 
-      before { resolver.add(pattern, config) }
+      before { resolver.add(matcher, config) }
       it { is_expected.to eq(config) }
 
       context 'then given a name that isn\'t a String but is case equal' do
         let(:name) { URI('http://localhost') }
-        let(:pattern) { /#{Regexp.escape('http://localhost')}/ }
+        let(:matcher) { /#{Regexp.escape('http://localhost')}/ }
 
         it 'coerces the name to a String' do
           is_expected.to eq(config)
@@ -34,13 +34,13 @@ RSpec.describe Datadog::Contrib::Configuration::Resolvers::PatternResolver do
 
     context 'when matching Proc has been added' do
       let(:name) { 'my-name' }
-      let(:pattern_proc) { proc { |n| n == name } }
-      before { resolver.add(pattern_proc, config) }
+      let(:matcher_proc) { proc { |n| n == name } }
+      before { resolver.add(matcher_proc, config) }
       it { is_expected.to eq(config) }
 
       context 'then given a name that isn\'t a String but is case equal' do
         let(:name) { URI('http://localhost') }
-        let(:pattern_proc) { proc { |uri| uri.is_a?(URI) } }
+        let(:matcher_proc) { proc { |uri| uri.is_a?(URI) } }
 
         it 'does not coerce the name' do
           is_expected.to eq(config)
@@ -56,14 +56,14 @@ RSpec.describe Datadog::Contrib::Configuration::Resolvers::PatternResolver do
 
     context 'when a matching String has been added' do
       let(:name) { 'my-name' }
-      let(:pattern) { name }
+      let(:matcher) { name }
 
-      before { resolver.add(pattern, config) }
+      before { resolver.add(matcher, config) }
       it { is_expected.to eq(config) }
 
       context 'then given a name that isn\'t a String but is case equal' do
         let(:name) { URI('http://localhost') }
-        let(:pattern) { name.to_s }
+        let(:matcher) { name.to_s }
 
         it 'coerces the name to a String' do
           is_expected.to eq(config)
@@ -79,12 +79,12 @@ RSpec.describe Datadog::Contrib::Configuration::Resolvers::PatternResolver do
   end
 
   describe '#add' do
-    subject(:add) { resolver.add(pattern, config) }
+    subject(:add) { resolver.add(matcher, config) }
 
     context 'when given a Regexp' do
-      let(:pattern) { /name/ }
+      let(:matcher) { /name/ }
 
-      it 'allows any string matching the pattern to resolve' do
+      it 'allows any string matching the matcher to resolve' do
         expect { add }.to change { resolver.resolve('my-name') }
           .from(nil)
           .to(config)
@@ -92,9 +92,9 @@ RSpec.describe Datadog::Contrib::Configuration::Resolvers::PatternResolver do
     end
 
     context 'when given a Proc' do
-      let(:pattern) { proc { |n| n == 'my-name' } }
+      let(:matcher) { proc { |n| n == 'my-name' } }
 
-      it 'allows any string matching the pattern to resolve' do
+      it 'allows any string matching the matcher to resolve' do
         expect { add }.to change { resolver.resolve('my-name') }
           .from(nil)
           .to(config)
@@ -102,20 +102,20 @@ RSpec.describe Datadog::Contrib::Configuration::Resolvers::PatternResolver do
     end
 
     context 'when given a string' do
-      let(:pattern) { 'my-name' }
+      let(:matcher) { 'my-name' }
 
       it 'allows identical strings to resolve' do
-        expect { add }.to change { resolver.resolve(pattern) }
+        expect { add }.to change { resolver.resolve(matcher) }
           .from(nil)
           .to(config)
       end
     end
 
     context 'when given some object that responds to #to_s' do
-      let(:pattern) { URI('http://localhost') }
+      let(:matcher) { URI('http://localhost') }
 
       it 'allows its #to_s value to match identical strings when resolved' do
-        expect(pattern).to respond_to(:to_s)
+        expect(matcher).to respond_to(:to_s)
         expect { add }.to change { resolver.resolve('http://localhost') }
           .from(nil)
           .to(config)

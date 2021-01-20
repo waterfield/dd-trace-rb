@@ -34,24 +34,17 @@ module Datadog
             @ar_configurations = ar_configurations
           end
 
-          def ar_configurations
-            @ar_configurations || ::ActiveRecord::Base.configurations
+          def add(matcher, value)
+            parsed = parse_matcher(matcher)
+
+            # In case of error parsing, don't store `nil` key
+            # as it wouldn't be useful for matching configuration
+            # hashes in `#resolve`.
+            super(parsed, value) if parsed
           end
 
-          def add(matcher, value)
-            resolved_pattern = connection_resolver.resolve(matcher).symbolize_keys
-
-            normalized = normalize(resolved_pattern)
-
-            # Remove empty fields to allow for partial matching
-            normalized.reject! { |_, v| v.nil? }
-
-            super(normalized, value)
-          rescue => e
-            Datadog.logger.error(
-              "Failed to resolve ActiveRecord configuration key #{matcher.inspect}. " \
-              "Cause: #{e.message} Source: #{e.backtrace.first}"
-            )
+          def ar_configurations
+            @ar_configurations || ::ActiveRecord::Base.configurations
           end
 
           def resolve(db_config)
@@ -77,7 +70,21 @@ module Datadog
             nil
           end
 
-          private
+          protected
+
+          def parse_matcher(matcher)
+            resolved_pattern = connection_resolver.resolve(matcher).symbolize_keys
+
+            normalized = normalize(resolved_pattern)
+
+            # Remove empty fields to allow for partial matching
+            normalized.reject! { |_, v| v.nil? }
+          rescue => e
+            Datadog.logger.error(
+              "Failed to resolve ActiveRecord configuration key #{matcher.inspect}. " \
+              "Cause: #{e.message} Source: #{e.backtrace.first}"
+            )
+          end
 
           def connection_resolver
             @resolver ||= begin

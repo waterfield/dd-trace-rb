@@ -1480,7 +1480,8 @@ Datadog.configure do |c|
   c.use :redis, describes: { url: 'unix://path/to/file' }, service_name: 'redis-unix'
 
   # Connection string
-  c.use :redis, describes: { url: 'redis://127.0.0.1:6379/0' }, service_name: 'redis-connection-string'
+  c.use :redis, describes: 'redis://127.0.0.1:6379/0', service_name: 'redis-connection-string'
+  c.use :redis, describes: { url: 'redis://127.0.0.1:6379/1' }, service_name: 'redis-connection-url'
   # Client host, port, db, scheme
   c.use :redis, describes: { host: 'my-host.com', port: 6379, db: 1, scheme: 'redis' }, service_name: 'redis-connection-hash'
   # Only a subset of the connection hash

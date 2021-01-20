@@ -25,13 +25,26 @@ RSpec.describe 'Redis configuration resolver' do
     end
 
     context 'when redis connexion string provided' do
-      let(:matcher) { { url: 'redis://127.0.0.1:6379/0' } }
+      context 'as a plain object' do
+        let(:matcher) { 'redis://127.0.0.1:6379/0' }
 
-      it do
-        expect(parsed_key).to eq(host: '127.0.0.1',
-                                 port: 6379,
-                                 db: 0,
-                                 scheme: 'redis')
+        it do
+          expect(parsed_key).to eq(host: '127.0.0.1',
+                                   port: 6379,
+                                   db: 0,
+                                   scheme: 'redis')
+        end
+      end
+
+      context 'as a hash' do
+        let(:matcher) { { url: 'redis://127.0.0.1:6379/0' } }
+
+        it do
+          expect(parsed_key).to eq(host: '127.0.0.1',
+                                   port: 6379,
+                                   db: 0,
+                                   scheme: 'redis')
+        end
       end
     end
 
@@ -99,9 +112,17 @@ RSpec.describe 'Redis configuration resolver' do
     end
 
     context 'when redis connexion string provided' do
-      let(:matcher) { { url: 'redis://127.0.0.1:6379/0' } }
+      context 'as a plain object' do
+        let(:matcher) { 'redis://127.0.0.1:6379/0' }
 
-      it_behaves_like 'a resolver with a matching pattern'
+        it_behaves_like 'a resolver with a matching pattern'
+      end
+
+      context 'as a hash' do
+        let(:matcher) { { url: 'redis://127.0.0.1:6379/0' } }
+
+        it_behaves_like 'a resolver with a matching pattern'
+      end
     end
 
     context 'when host, port, db and scheme provided' do

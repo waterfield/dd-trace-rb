@@ -6,16 +6,19 @@ module Datadog
       module Configuration
         UNIX_SCHEME = 'unix'.freeze
 
-        # Converts Symbols, Strings, and Hashes to a normalized connection settings Hash.
+        # Converts String URLs and Hashes to a normalized connection settings Hash.
         class Resolver < Contrib::Configuration::Resolver
-          def add(key_or_hash, value)
-            resolved = normalize(connection_resolver.resolve(key_or_hash))
-            super(resolved, value)
+          # @param [Hash,String] Redis connection information
+          def resolve(hash)
+            super(parse_matcher(hash))
           end
 
-          def resolve(key_or_hash)
-            resolved = normalize(connection_resolver.resolve(key_or_hash))
-            super(resolved)
+          protected
+
+          def parse_matcher(matcher)
+            matcher = { url: matcher } if matcher.is_a?(String)
+
+            normalize(connection_resolver.resolve(matcher))
           end
 
           def normalize(hash)
