@@ -36,6 +36,10 @@ require 'support/synchronization_helpers'
 require 'support/test_helpers'
 require 'support/tracer_helpers'
 
+if RUBY_VERSION < '2.1.0'
+  require 'safe_yaml' # Allow use of YAML.safe_load on all supported rubies
+end
+
 begin
   # Ignore interpreter warnings from external libraries
   require 'warning'
