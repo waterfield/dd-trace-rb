@@ -21,8 +21,8 @@ unless ENV['CI'] == 'true'
   # gem 'activerecord', '6.1.1'
   gem 'redis'
   gem 'redis-rails'
-  gem 'sprockets', '< 4'
   gem 'sidekiq', '< 5'
+  gem 'sprockets', '< 4'
 
   # gem 'activerecord-jdbcmysql-adapter', platform: :jruby
   # gem 'activerecord-jdbcpostgresql-adapter', platform: :jruby
