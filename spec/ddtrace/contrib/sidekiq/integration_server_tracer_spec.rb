@@ -17,11 +17,30 @@ RSpec.describe 'Integration Server tracer' do
     #   chain.add(Datadog::Contrib::Sidekiq::ServerTracer)
     # end
 
+    allow(ENV).to receive(:[]).and_call_original
+    allow(ENV).to receive(:[]).with('REDIS_URL').and_return("redis://#{redis_host}:#{redis_port}")
+
     Sidekiq::Extensions.enable_delay! if Sidekiq::VERSION > '5.0.0'
   end
 
   subject do
-    enable datadog
+    use_real_tracer!
+    require 'datadog/statsd'
+
+    Datadog.configure do |c|
+      c.use :sidekiq
+      c.runtime_metrics.enabled = true
+    end
+
+    # Sidekiq.configure_client do |config|
+    #   config.redis = { url: ENV['REDIS_URL'] }
+    # end
+
+    Sidekiq.configure_server do |config|
+      config.logger.level = Logger::WARN
+      # config.redis = { url: ENV['REDIS_URL'] }
+    end
+
     cli = Sidekiq::CLI.instance
     cli.parse([ '-r', File.join(__dir__, 'support', 'integration_worker.rb')])
     Thread.new { cli.run }
