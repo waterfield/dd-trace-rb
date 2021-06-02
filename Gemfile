@@ -58,7 +58,7 @@ end
 
 # Optional extensions
 # TODO: Move this to Appraisals?
-gem 'dogstatsd-ruby', '>= 3.3.0'
+# gem 'dogstatsd-ruby', '>= 3.3.0'
 gem 'opentracing', '>= 0.4.1'
 
 # Profiler optional dependencies
@@ -69,3 +69,5 @@ gem 'opentracing', '>= 0.4.1'
 gem 'google-protobuf', ['~> 3.0', '!= 3.7.0', '!= 3.7.1'] if RUBY_PLATFORM != 'java'
 
 gem 'sidekiq'
+gem 'dogstatsd-ruby', '>= 5'
+# gem 'dogstatsd-ruby', '< 5'

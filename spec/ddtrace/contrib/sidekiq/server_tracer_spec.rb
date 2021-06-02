@@ -9,10 +9,10 @@ RSpec.describe 'Server tracer' do
   let(:job_class) { EmptyWorker }
 
   before do
-    # Sidekiq::Testing.server_middleware.clear
-    # Sidekiq::Testing.server_middleware do |chain|
-    #   chain.add(Datadog::Contrib::Sidekiq::ServerTracer)
-    # end
+    Sidekiq::Testing.server_middleware.clear
+    Sidekiq::Testing.server_middleware do |chain|
+      chain.add(Datadog::Contrib::Sidekiq::ServerTracer)
+    end
 
     Sidekiq::Extensions.enable_delay! if Sidekiq::VERSION > '5.0.0'
   end
