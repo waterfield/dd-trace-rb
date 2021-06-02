@@ -395,7 +395,7 @@ services:
     ports:
       - "${TEST_PRESTO_PORT}:8080"
   redis:
-    image: redis:3.0
+    image: redis:4.0-alpine
     expose:
       - "6379"
     ports:

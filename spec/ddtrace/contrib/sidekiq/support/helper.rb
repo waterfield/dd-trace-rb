@@ -1,7 +1,9 @@
-require 'sidekiq/testing'
+# require 'sidekiq/testing'
 require 'ddtrace'
 require 'ddtrace/contrib/sidekiq/client_tracer'
 require 'ddtrace/contrib/sidekiq/server_tracer'
+
+require 'sidekiq'
 
 RSpec.shared_context 'Sidekiq testing' do
   let(:redis_host) { ENV.fetch('TEST_REDIS_HOST', '127.0.0.1') }
@@ -22,7 +24,7 @@ RSpec.shared_context 'Sidekiq testing' do
       config.redis = { url: redis_url }
     end
 
-    Sidekiq::Testing.inline!
+    # Sidekiq::Testing.inline!
   end
 
   let!(:empty_worker) do

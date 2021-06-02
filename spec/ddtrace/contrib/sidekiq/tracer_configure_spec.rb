@@ -11,13 +11,31 @@ RSpec.describe 'Tracer configuration' do
 
   context 'with custom middleware configuration' do
     before do
-      Sidekiq::Testing.server_middleware do |chain|
-        chain.add(
-          Datadog::Contrib::Sidekiq::ServerTracer,
-          service_name: 'my-service',
-          error_handler: error_handler
-        )
-      end
+      #::Sidekiq.configure_client do |config|
+      #             config.client_middleware do |chain|
+      #               chain.add(Sidekiq::ClientTracer)
+      #             end
+      #           end
+      #
+      #           ::Sidekiq.configure_server do |config|
+      #             # If a job enqueues another job, make sure it has the same client
+      #             # middleware.
+      #             config.client_middleware do |chain|
+      #               chain.add(Sidekiq::ClientTracer)
+      #             end
+      #
+      #             config.server_middleware do |chain|
+      #               chain.add(Sidekiq::ServerTracer)
+      #             end
+      #           end
+
+      # Sidekiq::Testing.server_middleware do |chain|
+      #   chain.add(
+      #     Datadog::Contrib::Sidekiq::ServerTracer,
+      #     service_name: 'my-service',
+      #     error_handler: error_handler
+      #   )
+      # end
     end
 
     it 'instruments with custom values' do

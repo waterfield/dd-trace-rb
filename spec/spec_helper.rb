@@ -1,5 +1,15 @@
 $LOAD_PATH.unshift File.expand_path('..', __dir__)
 $LOAD_PATH.unshift File.expand_path('../lib', __dir__)
+
+begin
+  # Ignore interpreter warnings from external libraries
+  require 'warning'
+  Warning.ignore([:method_redefined, :not_reached, :unused_var], %r{.*/gems/[^/]*/lib/})
+  Warning.ignore([:keyword_separation], %r{.*/agent_settings_resolver.rb})
+rescue LoadError
+  puts 'warning suppressing gem not available, external library warnings will be displayed'
+end
+
 require 'pry'
 require 'rspec/collection_matchers'
 require 'webmock/rspec'
@@ -32,14 +42,6 @@ require 'support/spy_transport'
 require 'support/synchronization_helpers'
 require 'support/test_helpers'
 require 'support/tracer_helpers'
-
-begin
-  # Ignore interpreter warnings from external libraries
-  require 'warning'
-  Warning.ignore([:method_redefined, :not_reached, :unused_var], %r{.*/gems/[^/]*/lib/})
-rescue LoadError
-  puts 'warning suppressing gem not available, external library warnings will be displayed'
-end
 
 WebMock.allow_net_connect!
 WebMock.disable!
