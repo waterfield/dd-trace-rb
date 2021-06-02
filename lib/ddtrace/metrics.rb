@@ -50,7 +50,7 @@ module Datadog
       require 'datadog/statsd'
 
       # Create a StatsD client that points to the agent.
-      Datadog::Statsd.new(default_hostname, default_port, **default_statsd_client_options)
+      Datadog::Statsd.new(default_hostname, default_port)
     end
 
     def configure(options = {})
@@ -226,12 +226,6 @@ module Datadog
           logger.info({ stat: stat, type: :gauge, value: value, options: options }.to_json)
         end
       end
-    end
-
-    protected
-
-    def default_statsd_client_options
-      {}
     end
 
     # Make available on for both class and instance.

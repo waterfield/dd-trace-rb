@@ -52,14 +52,9 @@ module Datadog
       def flush
         return unless enabled?
 
-        puts statsd.send(:telemetry).flush
         try_flush { gauge(Ext::Runtime::Metrics::METRIC_CLASS_COUNT, ClassCount.value) if ClassCount.available? }
         try_flush { gauge(Ext::Runtime::Metrics::METRIC_THREAD_COUNT, ThreadCount.value) if ThreadCount.available? }
         try_flush { gc_metrics.each { |metric, value| gauge(metric, value) } if GC.available? }
-        try_flush do
-          puts "flush"
-          statsd.flush
-        end if statsd.respond_to?(:flush)
       end
 
       def gc_metrics
@@ -83,20 +78,6 @@ module Datadog
           # Add services dynamically because they might change during runtime.
           options[:tags].concat(service_tags) unless service_tags.nil?
         end
-      end
-
-      protected
-
-      def default_statsd_client_options
-        {
-          # Try to ensure that we only need to flush StatsD once
-          # per #flush operation.
-          #
-          # The payload size is normally around 10KiB.
-          # We manually call `statsd.flush` to ensure we flush
-          # metrics once per #flush.
-          buffer_max_payload_size: 16_384,
-        }
       end
 
       private
