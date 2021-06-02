@@ -24,7 +24,7 @@ test_containers:
       resource_class_to_use:
         description: Resource class to use
         type: string
-        default: medium
+        default: small # 1 vCPU, 2GB: https://circleci.com/docs/2.0/executor-types/#available-docker-resource-classes
       edge:
         description: Use latest version of dependencies during testing
         type: boolean
