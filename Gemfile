@@ -20,7 +20,7 @@ gem 'pimpmychangelog', '>= 0.1.2'
 gem 'pry'
 if RUBY_PLATFORM != 'java'
   # There's a few incompatibilities between pry/pry-byebug on older Rubies
-  gem 'pry-byebug' if RUBY_VERSION >= '2.6.0' && RUBY_ENGINE != 'truffleruby'
+  gem 'pry-byebug' if RUBY_VERSION >= '2.6.0' && RUBY_VERSION < '3.0.0' && RUBY_ENGINE != 'truffleruby'
   gem 'pry-nav' if RUBY_VERSION < '2.6.0'
   gem 'pry-stack_explorer'
 else
@@ -71,3 +71,9 @@ gem 'opentracing', '>= 0.4.1'
 #       Since most of our customers won't have BUNDLE_FORCE_RUBY_PLATFORM=true, it's not something we want to add
 #       to our CI, so we just shortcut and exclude specific versions that were affecting our CI.
 gem 'google-protobuf', ['~> 3.0', '!= 3.7.0', '!= 3.7.1'] if RUBY_PLATFORM != 'java'
+
+# type checking
+if RUBY_VERSION >= '2.6.0' && RUBY_PLATFORM != 'java'
+  gem 'rbs'
+  gem 'steep', '~> 0.42.0'
+end
