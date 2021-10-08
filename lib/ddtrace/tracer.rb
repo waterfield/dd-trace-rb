@@ -192,7 +192,6 @@ module Datadog
       context, parent = guess_context_and_parent(options[:child_of])
 
       # Build span options
-      options[:tracer] = self
       options[:context] = context
       options[:child_of] = parent
       options[:service] ||= (parent && parent.service) || default_service
@@ -207,6 +206,11 @@ module Datadog
 
       # Build a new span operation
       span = Datadog::SpanOperation.new(name, options)
+
+      # Subscribe to events
+      span.on_finished.subscribe(:tracer_span_finished) do |operation|
+        record_span(operation)
+      end
 
       # If it's a root span...
       @sampler.sample!(span) if parent.nil?
@@ -230,14 +234,21 @@ module Datadog
       span
     end
 
-    def record_span(operation)
-      operation.service ||= default_service
-      record_context(operation.context) if operation.context
-      operation.span
-    end
-
+    # Ends the span
     def finish_span(operation, end_time = nil)
       operation.finish(end_time)
+    end
+
+    # Records the span (& its context)
+    def record_span(operation)
+      begin
+        operation.service ||= default_service
+        record_context(operation.context) if operation.context
+        operation.span
+      rescue StandardError => e
+        Datadog.logger.debug("error recording finished trace: #{e} Backtrace: #{e.backtrace.first(3)}")
+        Datadog.health_metrics.error_span_finish(1, tags: ["error:#{e.class.name}"])
+      end
     end
 
     # Return a +span+ that will trace an operation called +name+. You could trace your code
@@ -461,6 +472,7 @@ module Datadog
       :configure_writer,
       :deactivate_priority_sampling!,
       :guess_context_and_parent,
+      :record_span,
       :record_context,
       :write
   end
