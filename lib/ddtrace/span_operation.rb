@@ -101,7 +101,7 @@ module Datadog
       end
     end
 
-    def measure(start_time: nil)
+    def measure
       raise ArgumentError, 'Must provide block to measure!' unless block_given?
       # TODO: Should we just invoke the block and skip tracing instead?
       raise AlreadyFinishedError if finished?
@@ -110,7 +110,7 @@ module Datadog
 
       begin
         begin
-          start(start_time)
+          start
         rescue StandardError => e
           Datadog.logger.debug("Failed to start span: #{e}")
         ensure
