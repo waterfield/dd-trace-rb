@@ -41,7 +41,7 @@ module Datadog
               end
             end
           end
-          option :error_handler, default: Datadog::Tracer::DEFAULT_ON_ERROR
+          option :error_handler, default: Datadog::SpanOperation::Events::DEFAULT_ON_ERROR
         end
       end
     end

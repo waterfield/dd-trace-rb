@@ -36,6 +36,22 @@ module Datadog
       true
     end
 
+    def wrap(key)
+      raise ArgumentError, 'Must give a block to wrap!' unless block_given?
+
+      @mutex.synchronize do
+        original = subscriptions[key]
+
+        subscriptions[key] = proc do |*args|
+          yield(original, *args)
+        end
+      end
+    end
+
+    def [](key)
+      subscriptions[key]
+    end
+
     def publish(*args)
       @mutex.synchronize do
         subscriptions.each do |key, block|
