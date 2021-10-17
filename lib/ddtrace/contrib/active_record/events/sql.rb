@@ -38,13 +38,19 @@ module Datadog
 
             span.name = "#{adapter_name}.query"
             span.service = service_name
-            span.resource = payload[:name]
             span.span_type = Datadog::Ext::SQL::TYPE
           
             raw = payload[:sql] || ''
-            sql = (raw =~ /^exec sp_executesql n'(.*[^'])',/i) ? $1 : raw
-            span.set_tag "query.sql", sql
-            span.set_tag "query.binds", payload[:binds]
+            sql = (raw =~ /^exec sp_executesql n'(.*?[^'])',/i) ? $1 : raw
+          
+            binds = {}
+            payload[:binds].each_with_index do |attr, index|
+              binds[attr.name] = attr.value
+              sql.gsub! "@#{index}", attr.value_for_database
+            end
+            
+            span.resource = sql
+            span.set_tag "binds", binds
 
             # Tag as an external peer service
             span.set_tag(Datadog::Ext::Integration::TAG_PEER_SERVICE, span.service)
