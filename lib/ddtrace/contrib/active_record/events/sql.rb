@@ -39,8 +39,10 @@ module Datadog
             span.name = "#{adapter_name}.query"
             span.service = service_name
             span.span_type = Datadog::Ext::SQL::TYPE
-          
+            
             raw = payload[:sql] || ''
+            span.sql = raw
+            
             sql = (raw =~ /^exec sp_executesql n?'(.*?(?:[^']|'')+)'(?:,|$)/i) ? $1 : raw
           
             binds = {}
@@ -73,6 +75,7 @@ module Datadog
             span.set_tag(Datadog::Ext::NET::TARGET_HOST, config[:host]) if config[:host]
             span.set_tag(Datadog::Ext::NET::TARGET_PORT, config[:port]) if config[:port]
           rescue StandardError => e
+            span.set_tag "error", e.message
             Datadog.logger.debug(e.message)
           end
         end
