@@ -49,7 +49,7 @@ module Datadog
             (payload[:binds] || []).reverse.each_with_index do |attr, index|
               binds[attr.name] = attr.value
               index = payload[:binds].size - index - 1
-              sql.gsub! "@#{index}", attr.value_for_database
+              sql.gsub! "@#{index}", attr.value_for_database.to_s
             end
             
             span.resource = sql
