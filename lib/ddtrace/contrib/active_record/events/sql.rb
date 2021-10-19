@@ -44,7 +44,7 @@ module Datadog
             sql = (raw =~ /^exec sp_executesql n?'(.*?(?:[^']|'')+)'(?:,|$)/i) ? $1 : raw
           
             binds = {}
-            payload[:binds].reverse.each_with_index do |attr, index|
+            (payload[:binds] || []).reverse.each_with_index do |attr, index|
               binds[attr.name] = attr.value
               index = payload[:binds].size - index - 1
               sql.gsub! "@#{index}", attr.value_for_database
