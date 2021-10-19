@@ -41,15 +41,17 @@ module Datadog
             span.span_type = Datadog::Ext::SQL::TYPE
           
             raw = payload[:sql] || ''
-            sql = (raw =~ /^exec sp_executesql n'(.*?[^'])',/i) ? $1 : raw
+            sql = (raw =~ /^exec sp_executesql n?'(.*?(?:[^']|'')+)'(?:,|$)/i) ? $1 : raw
           
             binds = {}
-            payload[:binds].each_with_index do |attr, index|
+            payload[:binds].reverse.each_with_index do |attr, index|
               binds[attr.name] = attr.value
+              index = payload[:binds].size - index - 1
               sql.gsub! "@#{index}", attr.value_for_database
             end
             
             span.resource = sql
+            span.set_tag "sql", sql # because datadog messes with the raw SQL
             span.set_tag "binds", binds
 
             # Tag as an external peer service
