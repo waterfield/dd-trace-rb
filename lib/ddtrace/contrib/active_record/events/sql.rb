@@ -41,7 +41,7 @@ module Datadog
             span.span_type = Datadog::Ext::SQL::TYPE
             
             raw = payload[:sql] || ''
-            span.sql = raw
+            span.set_tag "sql", raw
             
             sql = (raw =~ /^exec sp_executesql n?'(.*?(?:[^']|'')+)'(?:,|$)/i) ? $1 : raw
           
